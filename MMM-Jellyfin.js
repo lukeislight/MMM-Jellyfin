@@ -585,40 +585,69 @@ Module.register('MMM-Jellyfin', {
         const isOnline = await this.checkServerStatus();
         if (!isOnline) return; // Stop execution if the server is down
 
-        // Build IncludeItemTypes based on configured mediaTypes
-        let includeItemTypes = [];
-        
+        // Fetch each media type separately (Items/Latest doesn't work well with multiple types)
+        let allItems = [];
+
         if (moduleConfig.mediaTypes.includes('Movies')) {
-            includeItemTypes.push('Movie');
+            try {
+                const url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Movie&Limit=15&api_key=${apiKey}`;
+                console.log('Fetching Movies with URL:', url);
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Movies Response:', data);
+                    allItems = allItems.concat(data);
+                }
+            } catch (error) {
+                console.error('Error fetching movies:', error);
+            }
         }
+
         if (moduleConfig.mediaTypes.includes('Shows')) {
-            includeItemTypes.push('Series');
+            try {
+                const url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Series&Limit=15&api_key=${apiKey}`;
+                console.log('Fetching Shows with URL:', url);
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Shows Response:', data);
+                    allItems = allItems.concat(data);
+                }
+            } catch (error) {
+                console.error('Error fetching shows:', error);
+            }
         }
+
         if (moduleConfig.mediaTypes.includes('Audio')) {
-            includeItemTypes.push('Audio');
+            try {
+                const url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Audio&Limit=15&api_key=${apiKey}`;
+                console.log('Fetching Audio with URL:', url);
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Audio Response:', data);
+                    allItems = allItems.concat(data);
+                }
+            } catch (error) {
+                console.error('Error fetching audio:', error);
+            }
         }
 
-        if (includeItemTypes.length === 0) {
-            console.warn('No valid mediaTypes configured. Please set mediaTypes in config.');
-            return;
-        }
-
-        const url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=${includeItemTypes.join(',')}&Limit=15&api_key=${apiKey}`;
-        console.log('Fetching with URL:', url);
+        // Sort by DateCreated (most recent first)
+        allItems.sort((a, b) => new Date(b.DateCreated) - new Date(a.DateCreated));
+        
+        // Keep only the 15 most recent
+        allItems = allItems.slice(0, 15);
+        
+        console.log('Combined and sorted items. Total:', allItems.length);
 
         try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch recently added items');
-
-            const data = await response.json();
-            console.log('API Response:', data);
-
-            if (JSON.stringify(data) === JSON.stringify(recentlyAddedItems)) {
+            if (JSON.stringify(allItems) === JSON.stringify(recentlyAddedItems)) {
                 console.log("Recently added items have not changed. Skipping update.");
                 return; // Do not update UI if no change
             }
 
-            recentlyAddedItems = data;
+            recentlyAddedItems = allItems;
             console.log(`Updated Recently Added - Found ${recentlyAddedItems.length} items.`);
 
             // Fetch detailed metadata for each item
