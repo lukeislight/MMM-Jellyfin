@@ -581,21 +581,30 @@ Module.register('MMM-Jellyfin', {
     fetchRecentlyAdded: async function () {
         console.log('Fetching recently added items...');
         console.log('Configured mediaTypes:', moduleConfig.mediaTypes);
-        let url = '';
 
         const isOnline = await this.checkServerStatus();
         if (!isOnline) return; // Stop execution if the server is down
 
+        // Build IncludeItemTypes based on configured mediaTypes
+        let includeItemTypes = [];
+        
         if (moduleConfig.mediaTypes.includes('Movies')) {
-            url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Movie&Limit=15&api_key=${apiKey}`;
-            console.log('Fetching Movies with URL:', url);
-        } else if (moduleConfig.mediaTypes.includes('Shows')) {
-            url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Series&Limit=15&api_key=${apiKey}`;
-            console.log('Fetching Shows with URL:', url);
-        } else if (moduleConfig.mediaTypes.includes('Audio')) {
-            url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Audio&Limit=15&api_key=${apiKey}`;
-            console.log('Fetching Audio with URL:', url);
+            includeItemTypes.push('Movie');
         }
+        if (moduleConfig.mediaTypes.includes('Shows')) {
+            includeItemTypes.push('Series');
+        }
+        if (moduleConfig.mediaTypes.includes('Audio')) {
+            includeItemTypes.push('Audio');
+        }
+
+        if (includeItemTypes.length === 0) {
+            console.warn('No valid mediaTypes configured. Please set mediaTypes in config.');
+            return;
+        }
+
+        const url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=${includeItemTypes.join(',')}&Limit=15&api_key=${apiKey}`;
+        console.log('Fetching with URL:', url);
 
         try {
             const response = await fetch(url);
