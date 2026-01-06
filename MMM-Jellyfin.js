@@ -363,7 +363,7 @@ Module.register('MMM-Jellyfin', {
             detailsRow.style.gap = '10px';
 
             // Add certificate and quality images only for Movies
-            if (itemDetails.Type === 'Movie') {
+            if (itemDetails.Type === 'Movie' && certificateImage) {
                 detailsRow.appendChild(certificateImage);
             }
             if (resolutionImage) detailsRow.appendChild(resolutionImage);
