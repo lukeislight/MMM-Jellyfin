@@ -241,8 +241,25 @@ Module.register('MMM-Jellyfin', {
             }
 
             // Lookup for the certificate image
+            // Map common rating systems; fallback to Unknown if not found
+            const ratingMap = {
+                'GB-U': 'GB-U',
+                'GB-PG': 'GB-PG',
+                'GB-12': 'GB-12',
+                'GB-12A': 'GB-12A',
+                'GB-15': 'GB-15',
+                'GB-18': 'GB-18',
+                'GB-R18': 'GB-R18',
+                'U': 'GB-U',
+                'PG': 'GB-PG',
+                '12': 'GB-12',
+                '15': 'GB-15',
+                '18': 'GB-18'
+            };
+            
             const certificate = itemDetails.OfficialRating || 'Unknown';
-            const certificateImagePath = `modules/MMM-Jellyfin/certificates/${certificate}.png`;
+            const mappedRating = ratingMap[certificate] || 'Unknown';
+            const certificateImagePath = `modules/MMM-Jellyfin/certificates/${mappedRating}.png`;
 
             // Community Rating (rounded)
             const communityRating = itemDetails.CommunityRating
