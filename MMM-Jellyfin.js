@@ -277,7 +277,9 @@ Module.register('MMM-Jellyfin', {
             const isAtmos = itemDetails.MediaStreams?.[1]?.DisplayTitle?.includes('Atmos');
             const atmosImagePath = isAtmos ? `modules/MMM-Jellyfin/quality/atmos.png` : null;
 
-            const certificateImage = this.createImageElement(certificateImagePath, '40px');
+            const certificateImage = mappedRating === 'Unknown' 
+                ? null 
+                : this.createImageElement(certificateImagePath, '40px');
             const resolutionImage = resolutionImagePath
                 ? this.createImageElement(resolutionImagePath, '50px', '5px')
                 : null;
@@ -578,6 +580,7 @@ Module.register('MMM-Jellyfin', {
 
     fetchRecentlyAdded: async function () {
         console.log('Fetching recently added items...');
+        console.log('Configured mediaTypes:', moduleConfig.mediaTypes);
         let url = '';
 
         const isOnline = await this.checkServerStatus();
@@ -585,10 +588,13 @@ Module.register('MMM-Jellyfin', {
 
         if (moduleConfig.mediaTypes.includes('Movies')) {
             url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Movie&Limit=15&api_key=${apiKey}`;
+            console.log('Fetching Movies with URL:', url);
         } else if (moduleConfig.mediaTypes.includes('Shows')) {
             url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Series&Limit=15&api_key=${apiKey}`;
+            console.log('Fetching Shows with URL:', url);
         } else if (moduleConfig.mediaTypes.includes('Audio')) {
             url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Audio&Limit=15&api_key=${apiKey}`;
+            console.log('Fetching Audio with URL:', url);
         }
 
         try {
@@ -596,7 +602,7 @@ Module.register('MMM-Jellyfin', {
             if (!response.ok) throw new Error('Failed to fetch recently added items');
 
             const data = await response.json();
-            console.log(data);
+            console.log('API Response:', data);
 
             if (JSON.stringify(data) === JSON.stringify(recentlyAddedItems)) {
                 console.log("Recently added items have not changed. Skipping update.");
@@ -609,8 +615,10 @@ Module.register('MMM-Jellyfin', {
             // Fetch detailed metadata for each item
             let detailedItems = [];
             for (let item of recentlyAddedItems) {
+                console.log(`Fetching details for item: ${item.Name} (${item.Type})`);
                 const details = await this.fetchItemDetails(item.Id);
                 if (details) {
+                    console.log(`Fetched details for: ${details.Name} (Type: ${details.Type})`);
                     detailedItems.push(details);
                 }
             }
