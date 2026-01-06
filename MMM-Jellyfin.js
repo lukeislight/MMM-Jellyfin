@@ -569,9 +569,9 @@ Module.register('MMM-Jellyfin', {
         if (moduleConfig.mediaTypes.includes('Movies')) {
             url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Movie&Limit=15&api_key=${apiKey}`;
         } else if (moduleConfig.mediaTypes.includes('Shows')) {
-            url = `${serverUrl}/Users/${userId}/Items/Latest?collectionType=tvshows&ParentId=a656b907eb3a73532e40e44b968d0225&api_key=${apiKey}`;
+            url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Series&Limit=15&api_key=${apiKey}`;
         } else if (moduleConfig.mediaTypes.includes('Audio')) {
-            url = `${serverUrl}/Users/${userId}/Items/Latest?collectionType=music&ParentId=7e64e319657a9516ec78490da03edccb&api_key=${apiKey}`;
+            url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Audio&Limit=15&api_key=${apiKey}`;
         }
 
         try {
